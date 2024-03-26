@@ -47,7 +47,7 @@ def main():
 
         model, X_test, y_test = train_model(df)
 
-        st.subheader('Model Evaluation')
+        st.subheader('Model Evaluation of Cost')
         mse = mean_squared_error(y_test, predict(model, X_test))
         st.write('Mean Squared Error for Total Project Cost:', mse)
         
@@ -80,7 +80,7 @@ def main():
         mse_quality = mean_squared_error(y_quality, y_pred_quality)
         rmse_quality = np.sqrt(mse_quality)
 
-        st.subheader('Additional Evaluation Metrics for Quality Prediction')
+        st.subheader('Model Evaluation of Quality')
         st.write(f"Mean Absolute Error for Quality Prediction: {mae_quality}")
         st.write(f"Mean Squared Error for Quality Prediction: {mse_quality}")
         st.write(f"Root Mean Squared Error for Quality Prediction: {rmse_quality}")
