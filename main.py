@@ -21,9 +21,9 @@ def load_data(file):
     return df_numeric
 
 # Define function to train model
-def train_model(df):
+def train_model(df, target='Total Project Cost'):
     X = df.drop(columns=['Planned Total Project Cost', 'Actual Duration (days)'])  # Drop the target and time columns
-    y = df['Planned Total Project Cost']
+    y = df[target]
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     model = RandomForestRegressor()
     model.fit(X_train, y_train)
@@ -47,43 +47,49 @@ def main():
 
         model, X_test, y_test = train_model(df)
 
-        st.subheader('Model Evaluation of Cost')
+        # Compute evaluation metrics for total project cost prediction
         mse = mean_squared_error(y_test, predict(model, X_test))
-        st.write('Mean Squared Error for Total Project Cost:', mse)
-        
-        # Compute Mean Absolute Error for Total Project Cost
         mae = mean_absolute_error(y_test, predict(model, X_test))
-        st.write('Mean Absolute Error for Total Project Cost:', mae)
-        
-        # Compute Root Mean Squared Error for Total Project Cost
         rmse = np.sqrt(mse)
-        st.write('Root Mean Squared Error for Total Project Cost:', rmse)
 
-        # Plot MSE graph
-        st.subheader('Mean Squared Error Graph')
-        plt.figure(figsize=(8, 6))
-        plt.plot([mse]*len(y_test), linestyle='--', label='Mean Squared Error')
-        plt.xlabel('Samples')
-        plt.ylabel('Mean Squared Error')
-        plt.legend()
-        st.pyplot()
-        
-        # Define features and target variables for quality prediction
-        X_quality = df.drop(columns=['Planned Total Project Cost', 'Actual Duration (days)'])
-        y_quality = df['Planned Total Project Cost']
+        # Create a bar chart for model evaluation
+        eval_metrics = ['Mean Squared Error', 'Mean Absolute Error', 'Root Mean Squared Error']
+        eval_values = [mse, mae, rmse]
+        eval_df = pd.DataFrame({'Metric': eval_metrics, 'Value': eval_values})
 
-        # Predict quality using the trained model
-        y_pred_quality = model.predict(X_quality)
+        st.subheader('Model Evaluation Chart')
+        st.bar_chart(eval_df.set_index('Metric'))
 
-        # Compute MAE, MSE, RMSE for quality prediction
-        mae_quality = mean_absolute_error(y_quality, y_pred_quality)
-        mse_quality = mean_squared_error(y_quality, y_pred_quality)
-        rmse_quality = np.sqrt(mse_quality)
+        # Create two columns for displaying Model Evaluation and Metrics for Quality Prediction side by side
+        col1, col2 = st.columns(2)
 
-        st.subheader('Model Evaluation of Quality')
-        st.write(f"Mean Absolute Error for Quality Prediction: {mae_quality}")
-        st.write(f"Mean Squared Error for Quality Prediction: {mse_quality}")
-        st.write(f"Root Mean Squared Error for Quality Prediction: {rmse_quality}")
+        with col1:
+            st.subheader('Model Evaluation')
+            
+            # Display metric cards for total project cost prediction
+            st.metric(label='Mean Squared Error', value=mse)
+            st.metric(label='Mean Absolute Error', value=mae)
+            st.metric(label='Root Mean Squared Error', value=rmse)
+
+        with col2:
+            st.subheader('Metrics for Quality Prediction')
+            
+            # Define features and target variables for quality prediction
+            X_quality = df.drop(columns=['Planned Total Project Cost', 'Actual Duration (days)'])
+            y_quality = df['Planned Total Project Cost']
+
+            # Predict quality using the trained model
+            y_pred_quality = model.predict(X_quality)
+
+            # Compute MAE, MSE, RMSE for quality prediction
+            mae_quality = mean_absolute_error(y_quality, y_pred_quality)
+            mse_quality = mean_squared_error(y_quality, y_pred_quality)
+            rmse_quality = np.sqrt(mse_quality)
+
+            # Display metric card for quality prediction metrics
+            st.metric(label='Mean Absolute Error (Quality Prediction)', value=mae_quality)
+            st.metric(label='Mean Squared Error (Quality Prediction)', value=mse_quality)
+            st.metric(label='Root Mean Squared Error (Quality Prediction)', value=rmse_quality)
 
         st.subheader('Make Predictions')
         input_data = st.text_input('Enter input data separated by commas (e.g., Area, Material, Labour, Time, etc.):')
